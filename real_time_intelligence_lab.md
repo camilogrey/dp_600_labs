@@ -1,4 +1,4 @@
-# Laboratorio: Creación de un workspace en Microsoft Fabric
+# Laboratorio: real time intelligence
 
 ## Requisitos previos
 - Disponer de acceso a una capacidad de Fabric de pago o de prueba (trial).  
@@ -6,7 +6,7 @@
 
 ---
 
-## Desarrollo del laboratorio (en primera persona)
+## Desarrollo del laboratorio
 
 1. **Acceso a la plataforma**  
 
@@ -30,4 +30,37 @@
 
    > **Evidencia del workspace recién creado y vacío**  
    > ![Workspace vacío](img_lab1/2.png)
+
+# Creación de un eventstream
+
+1. **Acceso al Real‑Time Hub**  
+   Desde el workspace `real_time_intelligence` que creé anteriormente, localicé en la barra lateral izquierda el icono de **Real‑Time hub** (si no aparecía, lo fijé usando el botón de puntos suspensivos).  
+   > ![Vista del workspace y acceso al hub](img2_lab1/1.png)
+
+2. **Inicio de la adición de datos**  
+   Dentro del Real‑Time Hub, hice clic en el botón **Add data** para comenzar a incorporar una fuente de streaming.  
+   > ![Real‑Time Hub con opcion Add data](img2_lab1/2.png)
+
+3. **Selección de la fuente de muestra**  
+   Entre las opciones disponibles, elegí el origen de datos de muestra **Stock market**, que proporciona datos bursátiles en tiempo real.
+
+4. **Configuración de la conexión**  
+   En el panel de configuración, completé los campos tal como se indicaba:  
+   - **Source name**: `stock`  
+   - **Workspace**: seleccioné `real_time_intelligence` (el que había creado)  
+   - **Eventstream name**: `stock-data`  
+   - El nombre del stream asociado se generó automáticamente como `stock-data-stream`.  
+   > ![Configuración inicial](img2_lab1/4.png)  
+   > ![Confirmación de parámetros](img2_lab1/5.png)
+
+5. **Conexión y creación del eventstream**  
+   Revisé los datos y pulsé **Next**, luego **Connect** para crear el eventstream.  
+   Una vez finalizado, seleccioné **Open eventstream** para visualizar el flujo en el lienzo de diseño.
+
+6. **Resultado final**  
+   El eventstream se mostró correctamente en el canvas, con el origen `stock` y el stream `stock-data-stream` listos para ser utilizados en transformaciones o enrutamientos.  
+   > ![Eventstream abierto en el canvas](img2_lab1/6.png)
+
+---
+**Nota:** Con este eventstream ya tengo una fuente de datos en tiempo real sobre la que podré aplicar procesamientos posteriores.
 
