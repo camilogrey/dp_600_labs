@@ -18,18 +18,15 @@
    - **Imagen del workspace**: mantuve la imagen por defecto (no cargué ninguna).  
 
    Seleccioné un modo de licencia que incluyera capacidad de Fabric (en mi caso, elegí la opción **Trial** para la prueba).  
-   Finalmente, hice clic en **Apply** para confirmar la creación.
+   Finalmente, hice clic en **Apply** para confirmar la creación. 
 
-   > **Evidencia del paso de creación**  
-
-![Pantalla de creación del workspace](img_lab1/1.png)
+   > ![Pantalla de creación del workspace](img_lab1/1.png)
 
 3. **Verificación del workspace vacío**  
    Una vez creado, el workspace se abrió automáticamente. Tal como se esperaba, se mostró completamente vacío, sin elementos ni tareas predefinidas.  
    En la interfaz pude observar las opciones para agregar nuevos elementos, carpetas, importar o migrar, así como la posibilidad de elegir flujos de tareas prediseñados o añadir tareas personalizadas.
 
-   > **Evidencia del workspace recién creado y vacío**  
-   > ![Workspace vacío](img_lab1/2.png)
+![Workspace vacío](img_lab1/2.png)
 
 # Creación de un eventstream
 
