@@ -61,3 +61,37 @@
 ---
 **Nota:** Con este eventstream ya tengo una fuente de datos en tiempo real sobre la que podré aplicar procesamientos posteriores.
 
+## Creación del Eventhouse
+
+1. **Creación del Eventhouse**  
+   En la barra lateral izquierda, seleccioné **Create** (si no estaba visible, lo fijé con el botón de puntos suspensivos). Dentro de la sección **Real‑Time Intelligence**, elegí **Eventhouse** y le asigné el nombre **`stock-house`**.  
+   Cerré los mensajes de bienvenida hasta que apareció el Eventhouse vacío.
+
+   > ![Eventhouse recién creado](1.png)
+
+2. **Exploración inicial**  
+   En el panel izquierdo observé que mi Eventhouse contenía una base de datos KQL con el mismo nombre (`stock-house`) y un **queryset** asociado con consultas de muestra.  
+   Seleccioné la base de datos y comprobé que aún no había tablas, por lo que procedí a ingerir datos desde el eventstream.
+
+3. **Inicio de la ingesta de datos**  
+   En la página principal de la base de datos KQL, hice clic en **Get data**.  
+   > ![Opciones de Get data](5.png)
+
+4. **Configuración de la fuente**  
+   Como origen elegí **Eventstream > Existing eventstream**. En el panel **Select or create a destination table**, creé una nueva tabla con el nombre **`stock`**.  
+   Luego, en **Configure the data source**, seleccioné mi workspace `real_time_intelligence`, el eventstream `stock-data` y el stream `stock-data-stream`. Asigné el nombre **`stock-table`** a la conexión de datos.  
+   > ![Configuración de origen y destino](6.png)
+
+5. **Finalización y verificación**  
+   Usé el botón **Next** para inspeccionar los datos y completar la configuración. Cerré la ventana y, al volver al Eventhouse, la tabla **`stock`** ya aparecía listada.  
+   > ![Eventhouse con la tabla creada](7.png)
+
+6. **Confirmación en el Real‑Time Hub**  
+   Para verificar que el eventstream ahora tenía un destino, fui al **Real‑Time hub**, abrí el menú de opciones del stream `stock-data-stream` y seleccioné **Open eventstream**. En el lienzo de diseño, el stream mostraba un nodo de destino hacia la tabla.  
+   Actualicé la vista y comprobé que los datos estaban fluyendo correctamente.  
+   > ![Vista previa de los datos en el stream](8.png)
+
+---
+
+**Nota:** Con este Eventhouse ya tengo almacenados los datos en tiempo real en una tabla, lista para ser consultada y analizada con KQL.
+
