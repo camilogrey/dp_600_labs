@@ -67,7 +67,7 @@
    En la barra lateral izquierda, seleccioné **Create** (si no estaba visible, lo fijé con el botón de puntos suspensivos). Dentro de la sección **Real‑Time Intelligence**, elegí **Eventhouse** y le asigné el nombre **`stock-house`**.  
    Cerré los mensajes de bienvenida hasta que apareció el Eventhouse vacío.
 
-   > ![Eventhouse recién creado](1.png)
+   > ![Eventhouse recién creado](img3_lab1/1.png)
 
 2. **Exploración inicial**  
    En el panel izquierdo observé que mi Eventhouse contenía una base de datos KQL con el mismo nombre (`stock-house`) y un **queryset** asociado con consultas de muestra.  
@@ -75,23 +75,136 @@
 
 3. **Inicio de la ingesta de datos**  
    En la página principal de la base de datos KQL, hice clic en **Get data**.  
-   > ![Opciones de Get data](5.png)
+   > ![Opciones de Get data](img3_lab1/5.png)
 
 4. **Configuración de la fuente**  
    Como origen elegí **Eventstream > Existing eventstream**. En el panel **Select or create a destination table**, creé una nueva tabla con el nombre **`stock`**.  
    Luego, en **Configure the data source**, seleccioné mi workspace `real_time_intelligence`, el eventstream `stock-data` y el stream `stock-data-stream`. Asigné el nombre **`stock-table`** a la conexión de datos.  
-   > ![Configuración de origen y destino](6.png)
+   > ![Configuración de origen y destino](img3_lab1/6.png)
 
 5. **Finalización y verificación**  
    Usé el botón **Next** para inspeccionar los datos y completar la configuración. Cerré la ventana y, al volver al Eventhouse, la tabla **`stock`** ya aparecía listada.  
-   > ![Eventhouse con la tabla creada](7.png)
+   > ![Eventhouse con la tabla creada](img3_lab1/7.png)
 
 6. **Confirmación en el Real‑Time Hub**  
    Para verificar que el eventstream ahora tenía un destino, fui al **Real‑Time hub**, abrí el menú de opciones del stream `stock-data-stream` y seleccioné **Open eventstream**. En el lienzo de diseño, el stream mostraba un nodo de destino hacia la tabla.  
    Actualicé la vista y comprobé que los datos estaban fluyendo correctamente.  
-   > ![Vista previa de los datos en el stream](8.png)
+   > ![Vista previa de los datos en el stream](img3_lab1/8.png)
 
 ---
 
 **Nota:** Con este Eventhouse ya tengo almacenados los datos en tiempo real en una tabla, lista para ser consultada y analizada con KQL.
 
+## Consulta de datos capturados en el Eventhouse
+
+1. **Acceso a la base de datos KQL**  
+   En la barra lateral izquierda, seleccioné el Eventhouse `stock-house` y, dentro de él, hice clic en la base de datos KQL (también llamada `stock-house`). Luego elegí el **queryset** asociado (`stock-house_queryset`) para abrir el editor de consultas.
+
+   > ![Vista de la base de datos y el queryset](img4_lab1/1.png)
+
+2. **Primera consulta: visualización de datos**  
+   En el panel de consultas, reemplacé el código de ejemplo por la siguiente instrucción, que recupera las primeras 100 filas de la tabla `stock`:
+
+   """kql
+   stock
+   | take 100
+   """
+
+   Seleccioné el código y ejecuté la consulta (botón Run). Los resultados mostraron 100 registros con los campos time, symbol, sector, bidPrice, etc., confirmando que la ingesta estaba funcionando.
+
+3. **Segunda consulta: visualización de datos**   
+   Segunda consulta: precio promedio por símbolo en los últimos 5 minutos
+   Para obtener el precio medio de cotización (bidPrice) de cada acción en el intervalo más reciente, modifiqué el query de la siguiente manera:
+
+   """
+   stock
+| where ["time"] > ago(5m)
+| summarize avgPrice = avg(todecimal(bidPrice)) by symbol
+| project symbol, avgPrice
+   """
+
+   Ejecuté esta consulta y observé los resultados, que mostraban el promedio para cada símbolo (NSFT, BMZM, HOOJ, etc.) en los últimos 5 minutos.
+
+   > ![Vista de la base de datos y el queryset](img4_lab1/5.png)
+
+4. **PrActualización en tiempo real**  
+   Actualización en tiempo real
+   Esperé unos segundos y volví a ejecutar la misma consulta. Comprobé que los valores de avgPrice cambiaban ligeramente, reflejando la llegada de nuevos datos desde el eventstream en tiempo real
+
+   > ![Vista de la base de datos y el queryset](img4_lab1/7.png)
+
+**Nota:**  Con estas consultas pude verificar que los datos se están ingiriendo correctamente y que la tabla se actualiza de forma continua, lo que permite realizar análisis en tiempo real sobre las cotizaciones bursátiles.
+
+## Creación de un dashboard en tiempo real
+
+1. **Selección de la consulta KQL**  
+   En el editor de consultas del queryset de `stock-house`, seleccioné la consulta que habíamos creado para calcular el precio promedio por símbolo en los últimos 5 minutos:
+
+stock
+| where ["time"] > ago(5m)
+| summarize avgPrice = avg(todecimal(bidPrice)) by symbol
+| project symbol, avgPrice
+
+
+(El código anterior se muestra como texto plano para evitar interferencias con el formato Markdown.)
+
+2. **Guardado en un nuevo dashboard**  
+En la barra de herramientas del editor, hice clic en **Save to dashboard** y elegí la opción de crear un nuevo dashboard con los siguientes parámetros:  
+- **Dashboard name**: `Stock Dashboard`  
+- **Tile name**: `Average Prices`  
+Confirmé la creación y el dashboard se abrió automáticamente, mostrando una tabla con los símbolos y sus precios promedio.
+
+> ![Dashboard recién creado mostrando la tabla](img5.lab1/3.png)
+
+3. **Cambio a modo edición**  
+En la esquina superior derecha del dashboard, cambié el modo de **Viewing** a **Editing** para poder modificar el aspecto del tile.
+
+4. **Edición del tile**  
+Seleccioné el icono de edición (lápiz) en el tile **Average Prices**. En el panel de **Visual formatting**, cambié el tipo de visual de **Table** a **Column chart**.  
+Ajusté los ejes y la apariencia según preferencia (dejé los valores por defecto).  
+> ![Configuración del gráfico de columnas](img5.lab1/6.png)
+
+5. **Aplicación de cambios**  
+En la parte superior del dashboard, hice clic en **Apply changes** y el tile se actualizó mostrando un gráfico de columnas con los precios promedio de cada símbolo. El dashboard ahora presentaba una visualización en tiempo real de los datos bursátiles.
+
+---
+
+**Nota:** Este dashboard se actualiza automáticamente a medida que nuevos datos llegan al eventstream, permitiendo un monitoreo continuo de las cotizaciones.
+
+## Creación de una alerta con Activator
+
+1. **Acceso a la opción de alerta**  
+   Desde el dashboard `Stock Dashboard` que creé anteriormente, localicé la visualización de precios promedio y en la barra de herramientas seleccioné **Set alert** para comenzar a configurar una notificación.
+
+2. **Configuración de los parámetros de la alerta**  
+   En el panel **Set alert**, completé los campos según las indicaciones:  
+   - **Run query every**: `5 minutes`  
+   - **Check**: `On each event grouped by`  
+   - **Grouping field**: `symbol`  
+   - **When**: `avgPrice`  
+   - **Condition**: `Increases by`  
+   - **Value**: `100`  
+   - **Action**: `Send me an email`  
+   - **Save location**:  
+     - **Workspace**: `real-time-intelligence`  
+     - **Item**: `Create a new item`  
+     - **New item name**: Elegí un nombre único, por ejemplo `My activator`.  
+
+   > ![Configuración de la alerta](img6.lab1/1.png)
+
+3. **Creación y guardado**  
+   Hice clic en **Create** y esperé a que la alerta se guardara correctamente. Luego cerré el panel de configuración.
+
+4. **Verificación en el workspace**  
+   En la barra lateral izquierda, navegué a la página de mi workspace (`real-time-intelligence`) y guardé los cambios pendientes del dashboard si se me solicitó. Allí pude visualizar todos los elementos creados durante el laboratorio, incluyendo el activator con el nombre que asigné.
+
+   > ![Workspace con el activator creado](img6.lab1/2.png)
+
+5. **Activacion de alerta**  
+   Lleg¡ada de notificaciòn
+
+   > ![Historial de la alerta](img6.lab1/3.png)
+
+---
+
+**Nota:** Con este activator configurado, el sistema monitoriza continuamente los precios promedio y notifica por correo cuando se produce una variación significativa, permitiendo una respuesta ágil ante cambios en el mercado.
