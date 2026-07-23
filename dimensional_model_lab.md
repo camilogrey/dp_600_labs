@@ -147,3 +147,252 @@ Hice clic en el botón ▷ Run para ejecutar el script. La operación se complet
 Para confirmar que los datos se cargaron adecuadamente, actualicé la vista del explorador (botón Refresh) y verifiqué que las tablas ya contenían los registros insertados. También ejecuté una consulta rápida de selección sobre f_Sales para visualizar las primeras filas y confirmar que los valores coincidían con los insertados.
 
 > ![Captura de la ejecución de carga](img_lab2/part3/3.png)
+
+
+## Consulta del esquema estrella
+
+1. **Consulta de ventas por mes y categoría de producto**  
+   En el warehouse `ContosoDW`, creé una nueva consulta SQL (botón **New SQL query**) y escribí el siguiente código para analizar las ventas agrupadas por mes y categoría:
+
+   """
+   SELECT
+d.MonthName,
+p.Category,
+SUM(f.SalesAmount) AS TotalSales,
+SUM(f.Quantity) AS TotalQuantity,
+SUM(f.DiscountAmount) AS TotalDiscounts
+FROM f_Sales f
+JOIN d_Date d ON f.DateKey = d.DateKey
+JOIN d_Product p ON f.ProductKey = p.ProductKey
+GROUP BY d.MonthName, d.[Month], p.Category
+ORDER BY d.[Month], p.Category;
+   """
+
+Ejecuté la consulta con el botón **▷ Run** y obtuve los resultados esperados: ventas totales, cantidades y descuentos agrupados por mes y categoría. Se observó que la tabla de hechos se une a las dimensiones para obtener atributos descriptivos, y las funciones `SUM` agregan las medidas numéricas.
+
+2. **Consulta de ventas por región de tienda y segmento de cliente**  
+A continuación, creé otra consulta SQL (en una nueva pestaña) para cambiar el enfoque del análisis, utilizando las dimensiones `d_Store` y `d_Customer`. El código fue el siguiente:
+
+"""
+SELECT
+s.Region,
+c.Segment,
+SUM(f.SalesAmount) AS TotalSales,
+COUNT(*) AS TransactionCount
+FROM f_Sales f
+JOIN d_Store s ON f.StoreKey = s.StoreKey
+JOIN d_Customer c ON f.CustomerKey = c.CustomerKey
+GROUP BY s.Region, c.Segment
+ORDER BY s.Region, c.Segment;
+"""
+
+
+Al ejecutarla, los resultados mostraron las ventas totales y el número de transacciones desglosadas por región y segmento de cliente. Esta consulta demuestra la flexibilidad del modelo estrella: sin modificar el esquema subyacente, puedo obtener diferentes perspectivas de negocio simplemente cambiando las dimensiones en los `JOIN` y en el `GROUP BY`.
+
+> ![Captura de los resultados de la segunda consulta](img_lab2/part4/4.png)
+
+---
+
+**Nota:** Ambas consultas confirman que el modelo dimensional permite analizar los datos de ventas desde múltiples ejes (tiempo, producto, ubicación, cliente) y que las medidas (SalesAmount, Quantity, DiscountAmount) se agregan correctamente según las dimensiones seleccionadas.
+
+
+## Cambio SCD
+
+### 1. Simular un cambio SCD Tipo 2 (actualización de costo del producto)
+Supuse que el costo de la bicicleta "Mountain Bike Pro" aumenta de $1,200 a $1,350 a partir del 1 de marzo de 2026. Para implementar el SCD Tipo 2, ejecuté los siguientes pasos en una nueva consulta SQL:
+
+- **Paso 1:** Expirar la versión actual del producto, estableciendo `ValidTo = '2026-03-01'` y `IsCurrent = 0`.
+
+"""
+UPDATE d_Product
+SET ValidTo = '2026-03-01',
+IsCurrent = 0
+WHERE ProductNaturalKey = 'MB-PRO'
+AND IsCurrent = 1;
+"""
+
+- **Paso 2:** Insertar la nueva versión del producto con el costo actualizado ($1350) y la nueva fecha de vigencia (`ValidFrom = '2026-03-01'`).
+
+"""
+INSERT INTO d_Product VALUES
+(6, 'MB-PRO', 'Mountain Bike Pro', 'AdventureWorks', 'Mountain Bikes', 'Bikes', 1350.00, '2026-03-01', '9999-12-31', 1);
+"""
+
+- **Paso 3:** Agregar una transacción de venta que haga referencia a la nueva versión del producto (ProductKey = 6).
+
+"""
+INSERT INTO f_Sales VALUES
+(20260504, 1, 6, 5, 1, 1500.00, 1500.00, 0.00);
+"""
+
+La ejecución de estos pasos se completó sin errores, como se muestra en los mensajes de la consulta.  
+> ![Captura del paso 1 (expiración de la versión antigua)](img_lab2/part5/6.png))
+
+### 2. Verificar la trazabilidad histórica del SCD Tipo 2
+Para comprobar que las ventas anteriores conservan el costo original y la nueva venta refleja el costo actualizado, ejecuté una consulta que une las tablas de hechos, fecha y producto, filtrando por el identificador natural del producto:
+
+"""
+SELECT
+d.FullDate,
+p.ProductName,
+p.UnitCost AS ProductCostVersion,
+p.ValidFrom AS CostEffectiveDate,
+f.Quantity,
+f.SalesAmount
+FROM f_Sales f
+JOIN d_Date d ON f.DateKey = d.DateKey
+JOIN d_Product p ON f.ProductKey = p.ProductKey
+WHERE p.ProductNaturalKey = 'MB-PRO'
+ORDER BY d.FullDate;
+"""
+
+Los resultados mostraron que las ventas de enero, febrero y abril conservan el costo de $1,200, mientras que la venta de mayo (después del cambio) utiliza el nuevo costo de $1,350. Esto confirma que el SCD Tipo 2 preserva la precisión histórica.  
+> ![Captura de los resultados de trazabilidad histórica](img_lab2/part5/7.png)
+
+### 3. Simular un cambio SCD Tipo 1 (corrección de nombre de producto)
+A continuación, simulé un cambio en el nombre del producto "Water Bottle" a "Insulated Water Bottle". Para ello, ejecuté una actualización directa que sobrescribe el valor existente, sin conservar historial:
+
+"""
+UPDATE d_Product
+SET ProductName = 'Insulated Water Bottle'
+WHERE ProductNaturalKey = 'WB-STD';
+"""
+
+La operación afectó una fila, como se muestra en los mensajes de la consulta.  
+> ![Captura de la actualización SCD Tipo 1](img_lab2/part5/8.png)
+
+### 4. Verificar ambos cambios SCD en la tabla de productos
+Para confirmar que ambos patrones se aplicaron correctamente, ejecuté una consulta que muestra todas las filas de la tabla `d_Product`, ordenadas por clave natural y fecha de vigencia:
+"""
+SELECT ProductKey, ProductNaturalKey, ProductName, UnitCost, ValidFrom, ValidTo, IsCurrent
+FROM d_Product
+ORDER BY ProductNaturalKey, ValidFrom;
+"""
+
+Los resultados evidencian que:
+
+- El producto `MB-PRO` tiene dos registros: la versión expirada (ProductKey = 1, costo $1,200, ValidTo = 2026-03-01, IsCurrent = 0) y la versión actual (ProductKey = 6, costo $1,350, IsCurrent = 1). Esto corresponde al SCD Tipo 2.
+- El producto `WB-STD` tiene un solo registro con el nombre actualizado "Insulated Water Bottle"; el nombre original se perdió, lo que corresponde al SCD Tipo 1.
+
+> ![Captura de la verificación final de ambos SCD](img_lab2/part5/9.png)
+
+---
+
+**Nota:** La implementación de estos patrones SCD permite gestionar los cambios en los atributos de las dimensiones de manera que se mantenga la integridad histórica (Tipo 2) o se simplifique la corrección de datos (Tipo 1), según los requisitos del negocio.
+
+## Verificación del diseño dimensional
+
+1. **Consulta integral del modelo estrella**  
+   Para validar que el esquema dimensional funciona correctamente, creé una nueva consulta SQL en el warehouse `ContosoDW` y escribí el siguiente código, que une la tabla de hechos `f_Sales` con las cuatro tablas de dimensiones:
+
+"""
+SELECT
+d.FullDate,
+d.[Year],
+d.MonthName,
+s.StoreName,
+s.Region,
+p.ProductName,
+p.Category,
+c.CustomerName,
+c.Segment,
+f.Quantity,
+f.UnitPrice,
+f.SalesAmount,
+f.DiscountAmount
+FROM f_Sales f
+JOIN d_Date d ON f.DateKey = d.DateKey
+JOIN d_Store s ON f.StoreKey = s.StoreKey
+JOIN d_Product p ON f.ProductKey = p.ProductKey
+JOIN d_Customer c ON f.CustomerKey = c.CustomerKey
+ORDER BY d.FullDate, s.StoreName;
+"""
+
+
+Ejecuté la consulta con el botón **▷ Run** y obtuve un conjunto de resultados que mostraba todas las transacciones enriquecidas con los atributos de las dimensiones.  
+> ![Captura de la consulta integral y sus resultados](img_lab2/part6/10.png)
+
+2. **Verificación de los ejes de análisis**  
+Revisé los resultados y confirmé que el modelo permite analizar los datos desde múltiples perspectivas:
+
+- **Análisis temporal:** La dimensión `d_Date` permite agrupar por año, trimestre, mes y día.
+- **Análisis geográfico:** La dimensión `d_Store` proporciona la jerarquía Región > País > Estado > Ciudad.
+- **Análisis de producto:** La dimensión `d_Product` permite agrupar por Categoría > Subcategoría > Marca > Producto.
+- **Análisis de cliente:** La dimensión `d_Customer` habilita la segmentación por segmento y nivel de lealtad.
+
+3. **Consultas adicionales para validar diferentes perspectivas**  
+Para asegurarme de que todas las dimensiones funcionaban correctamente, ejecuté consultas adicionales que mostraban agregaciones específicas:
+
+- **Ventas por año, trimestre y mes:**  
+"""
+SELECT
+d.Year,
+d.Quarter,
+d.MonthName,
+COUNT(*) AS NumVentas,
+SUM(f.SalesAmount) AS TotalVentas
+FROM f_Sales f
+JOIN d_Date d ON f.DateKey = d.DateKey
+GROUP BY d.Year, d.Quarter, d.MonthName
+ORDER BY d.Year, d.Quarter, d.MonthName;
+"""
+
+Los resultados confirmaron la correcta agregación temporal.  
+> ![Resultados por año, trimestre y mes](img_lab2/part6/11.png)
+
+- **Ventas por ubicación geográfica (Región, País, Estado, Ciudad):**  
+
+"""
+SELECT
+s.Region,
+s.Country,
+s.State,
+s.City,
+SUM(f.SalesAmount) AS TotalVentas
+FROM f_Sales f
+JOIN d_Store s ON f.StoreKey = s.StoreKey
+GROUP BY s.Region, s.Country, s.State, s.City
+ORDER BY s.Region, s.Country, s.State, s.City;
+"""
+Los resultados mostraron el desglose geográfico de las ventas.  
+> ![Resultados por ubicación](img_lab2/part6/12.png)
+
+- **Ventas por categoría de producto (Categoría, Subcategoría, Marca, Producto):**  
+
+"""
+SELECT
+p.Category,
+p.Subcategory,
+p.Brand,
+p.ProductName,
+SUM(f.SalesAmount) AS TotalVentas
+FROM f_Sales f
+JOIN d_Product p ON f.ProductKey = p.ProductKey
+GROUP BY p.Category, p.Subcategory, p.Brand, p.ProductName
+ORDER BY p.Category, p.Subcategory, p.Brand, p.ProductName;
+"""
+Los resultados reflejaron las ventas por jerarquía de producto.  
+> ![Resultados por producto](img_lab2/part6/13.png)
+
+- **Ventas por segmento y nivel de lealtad del cliente:**  
+
+Los resultados evidenciaron el comportamiento de compra por segmento.  
+> ![Resultados por segemento](img_lab2/part6/14.png)
+
+4. **Resumen del diseño verificado**  
+Con todas las consultas ejecutadas y los resultados revisados, confirmé que el modelo cumple con los requisitos del diseño dimensional:
+
+- **Esquema:** Estrella (una tabla de hechos `f_Sales` y cuatro dimensiones: `d_Date`, `d_Store`, `d_Product`, `d_Customer`).
+- **Grano:** Una fila por cada línea de transacción de venta.
+- **Medidas:** 
+- *Aditivas:* `Quantity`, `SalesAmount`, `DiscountAmount` (se pueden sumar en cualquier dimensión).
+- *No aditiva:* `UnitPrice` (debe promediarse o usarse en cálculos, no sumarse directamente).
+- **Jerarquías:** Fecha (Año > Trimestre > Mes > Día), Tienda (Región > País > Estado > Ciudad), Producto (Categoría > Subcategoría > Marca > Producto).
+- **SCD:** Tipo 2 para el costo del producto (UnitCost) y Tipo 1 para el nombre del producto (ProductName) y todos los atributos del cliente (en este ejercicio). La dimensión de tienda también incluye columnas preparadas para SCD Tipo 2.
+
+---
+
+**Nota:** El modelo dimensional queda validado y listo para su uso en análisis posteriores, incluyendo la creación de modelos semánticos en Power BI, donde las restricciones `NOT ENFORCED` servirán como metadatos para detectar relaciones automáticamente.
+
+
+
