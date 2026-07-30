@@ -133,7 +133,7 @@ Al revisar los resultados, la tabla de hechos Sales dominaba la lista. La column
 
 Para finalizar el laboratorio, volví al Analizador de rendimiento para confirmar numéricamente mi éxito.
 
-![](optim_sem_mod_imgs/11.%20check%20improve%20in%20table%20DAX%20query%20with%20performance%20analyzer.png)
+![](optim_sem_mod_imgs/11b.png)
 [Nota: El panel del analizador de rendimiento mostrando el tiempo de consulta DAX reducido a 16ms, señalado con una flecha]
 
 Limpié el registro previo, inicié una nueva grabación y actualicé los objetos visuales. Al expandir la entrada de la Table, los resultados fueron contundentes:
