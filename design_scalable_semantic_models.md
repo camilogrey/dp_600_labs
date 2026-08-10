@@ -4,6 +4,7 @@ En este ejercicio, exploré cómo utilizar funciones DAX y características avan
 
 ## Preparación inicial
 Antes de comenzar, descargué el archivo `15-Starter-Sales Analysis.pbix` desde el repositorio de Microsoft Learning, lo extraje en mi carpeta de Descargas y lo abrí en Power BI Desktop, ignorando cualquier advertencia emergente para aplicar cambios.
+[archivo de descarga](15-scalable-semantic-models/)
 
 ---
 
