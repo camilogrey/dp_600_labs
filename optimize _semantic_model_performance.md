@@ -1,6 +1,7 @@
 # Optimize semantic model performance
 
 En este ejercicio, mi objetivo fue aprender a diagnosticar y solucionar problemas de rendimiento en un modelo semántico de Power BI. El archivo `16-Starter-Sales Analysis.pbix`, basado en datos de AdventureWorks, contenía medidas con patrones DAX ineficientes de forma intencionada. 
+[archivo de descarga]()
 
 A lo largo del laboratorio, aprendí a usar el **Analizador de rendimiento**, a analizar consultas DAX generadas, a optimizar patrones repetitivos con variables (`VAR`), a examinar la cardinalidad de las columnas y a verificar las mejoras aplicadas.
 
