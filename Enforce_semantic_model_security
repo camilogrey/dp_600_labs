@@ -1,1 +1,4 @@
-
+Import and prepare a security mapping table using Power Query.
+Configure a bi-directional relationship with security filter propagation.
+Create static and dynamic roles using DAX.
+Validate role behavior by testing with different user identities.
