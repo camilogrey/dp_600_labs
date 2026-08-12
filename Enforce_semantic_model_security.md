@@ -51,14 +51,14 @@ Para comenzar, se importan los datos de los vendedores desde un archivo CSV util
 
 *   **Paso 1:** En la cinta de opciones **Home**, haga clic en **Get data** (Obtener datos) y seleccione **Text/CSV**.
 *   **Paso 2:** Navegue a la carpeta del laboratorio, seleccione el archivo `Salesperson.csv` y haga clic en **Open**.
-![Archivo de descarga]()
+[Archivo de descarga](enf_sem_mod_sec_img/salesperson.csv)
 
-![Imagen 1: Obtención de datos desde el menú Home](image1.png)
+![Imagen 1: Obtención de datos desde el menú Home](enf_sem_mod_sec_img/8.%20Import%20mapping%20table%20that%20links%20user%20identity%20to%20sales%20territory.png)
 
 *   **Paso 3:** En la ventana de previsualización, verifique que las tres columnas sean: `EmployeeKey`, `SalesTerritoryKey` y `EmailAddress`.
 *   **Paso 4:** Seleccione el botón **Transform Data** (Transformar datos) para abrir el Editor de Power Query.
 
-![Imagen 2: Previsualización del archivo CSV y botón Transform Data](image2.png)
+![Imagen 2: Previsualización del archivo CSV y botón Transform Data](enf_sem_mod_sec_img/9.%20mapping%20table%20preview%20ready%20to%20be%20transformed.png)
 
 ## 2. Preparación de datos en Power Query
 
@@ -68,7 +68,7 @@ En esta tarea, se renombra la columna de correo electrónico para que coincida c
 *   **Paso 2:** Cambie el nombre a `UPN` y presione Enter.
 *   **Paso 3:** En la cinta de opciones **Home**, seleccione **Close & Apply** (Cerrar y aplicar) para cargar la tabla en el modelo.
 
-![Imagen 3: Renombrado de columna y aplicación de cambios](image3.png)
+![Imagen 3: Renombrado de columna y aplicación de cambios](enf_sem_mod_sec_img/10.%20renamed%20email%20column%20of%20the%20mapping%20table%20.png)
 
 ## 3. Configuración de la relación y el filtro de seguridad
 
@@ -77,7 +77,7 @@ Para que los filtros de seguridad fluyan desde la tabla de vendedores hacia el t
 *   **Paso 1:** Cambie a la **Vista Modelo** (Model view).
 *   **Paso 2:** Arrastre el campo `SalesTerritoryKey` de la tabla `Salesperson` al campo `SalesTerritoryKey` de la tabla `Sales Territory` para crear una relación. (Como se muestra en la línea de conexión entre ambas tablas).
 
-![Imagen 4: Vista de modelo y creación de relación](image4.png)
+![Imagen 4: Vista de modelo y creación de relación](enf_sem_mod_sec_img/11.%20create%20relationship%20from%20salesperson%20to%20sales%20territory%20by%20dragging%20key%20salesterritoryKey.png)
 
 *   **Paso 3:** Haga clic derecho sobre la línea de relación entre `Salesperson` y `Sales Territory` y seleccione **Properties** (Propiedades).
 *   **Paso 4:** En la ventana **Edit relationship** (Editar relación):
@@ -85,11 +85,11 @@ Para que los filtros de seguridad fluyan desde la tabla de vendedores hacia el t
     *   Marque la casilla **Apply security filter in both directions** (Aplicar filtro de seguridad en ambas direcciones).
 *   **Paso 5:** Haga clic en **Save** para guardar la configuración.
 
-![Imagen 5: Configuración del filtro cruzado bidireccional de seguridad](image5.png)
+![Imagen 5: Configuración del filtro cruzado bidireccional de seguridad](enf_sem_mod_sec_img/12.%20configuration%20of%20the%20realtionship.png)
 
 *   **Paso 6:** Verifique en el diagrama que el indicador de relación ahora muestra flechas en ambas direcciones.
 
-![Imagen 6: Verificación de la relación bidireccional en el modelo](image6.png)
+![Imagen 6: Verificación de la relación bidireccional en el modelo](enf_sem_mod_sec_img/13.%20new%20created%20relationship.png)
 
 ## 4. Ocultar la tabla Salesperson
 
@@ -98,7 +98,7 @@ Dado que la tabla `Salesperson` solo se utiliza para la seguridad y no debe visu
 *   **Paso 1:** En la **Vista Modelo**, seleccione el encabezado de la tabla `Salesperson`.
 *   **Paso 2:** Haga clic derecho y seleccione **Hide in report view** (Ocultar en la vista de informes).
 
-![Imagen 7: Ocultar la tabla Salesperson de la vista de informes](image7.png)
+![Imagen 7: Ocultar la tabla Salesperson de la vista de informes](enf_sem_mod_sec_img/14.%20hide%20salesperson%20table.png)
 
 ## 5. Creación del rol de seguridad dinámico con DAX
 
@@ -111,10 +111,33 @@ Finalmente, se crea un único rol dinámico que filtrará los datos en función 
     *   Seleccione la tabla `Salesperson` en la lista de tablas.
     *   Seleccione el botón **Switch to DAX editor** (Cambiar al editor DAX).
 
-![Imagen 8: Administración de roles y selección del editor DAX](image8.png)
+![Imagen 8: Administración de roles y selección del editor DAX](enf_sem_mod_sec_img/15.%20creayte%20a%20dynamic%20role%20Salespeople%20with%20DAX%20editor.png)
 
 *   **Paso 3:** En el editor, introduzca la siguiente expresión DAX y presione la marca de verificación:
 
     ```dax
     [UPN] = USERPRINCIPALNAME()
 
+![Imagen 9: Comando DAX ](enf_sem_mod_sec_img/16.%20Dax%20expression%20to%20configure%20the%20permissions.png)
+
+*   **Paso 4:** Paso 4: Haga clic en Save (Guardar) y cierre la ventana.
+
+Con esto, el laboratorio está completo. El filtro RLS restringirá a cada usuario de Power BI (cuyo UPN coincida con el de la tabla) para que solo vea los datos de ventas de su territorio específico, gracias a la propagación del filtro bidireccional configurada en el paso 3.
+
+## 5. Validar el rol dinámico Mapeado 
+
+Ahora se valida el rol dinamico para un usuario SÍ mapeado para demostrar com se acota  y restringe la información a ese usuario particular michael9@adventure-works.com y seleccionamos las opciones indicadas de acuerdo al role.
+
+![Imagen 10: Ingreso de datos UPN del usuario ](enf_sem_mod_sec_img/17.%20view%20as%20a%20emplooyee.png)
+
+![Imagen 11: Vista de resultado del usuario ](enf_sem_mod_sec_img/18.%20result%20of%20view%20with%20an%20emplooyee%20UPN.png)
+
+## 6. Validar el rol dinámico NO Mapeado
+
+Ahora se valida el rol dinamico para un usuario NO mapeado nomatch@adventure-works.com
+
+![Imagen 11: Vista de resultado del usuario NO mapeado ](enf_sem_mod_sec_img/19.%20Test%20as%20an%20unmapped%20user%20.png)
+
+
+
+Nota: Esta ultima parte del lab se centró en la implementación de **Seguridad a Nivel de Fila Dinámica (Dynamic RLS)**. El objetivo principal fue garantizar que los usuarios de un informe de ventas solo puedan ver los datos correspondientes a su territorio geográfico asignado, todo ello gestionado mediante un único rol y una tabla de mapeo.
