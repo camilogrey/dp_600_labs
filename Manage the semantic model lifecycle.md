@@ -44,4 +44,29 @@ Después de ejecutar el código, en el explorador del lakehouse, hice clic derec
 **Nota final:** Con estos pasos completé la configuración inicial del entorno, la importación del notebook, la creación del lakehouse y la generación de los datos de muestra. El siguiente paso sería crear el modelo semántico y aplicar la validación con SemPy.
 
 ## Crear el módelo semantico
- 
+
+1. **Navegación al lakehouse y cambio al endpoint SQL**  
+   Desde el workspace `SalesLifecycle-dev`, seleccioné el lakehouse **SalesLakehouse**. En la esquina superior derecha, cambié la vista de **Lakehouse** a **SQL analytics endpoint** para poder crear el modelo semántico basado en las tablas.
+
+   > ![Cambio al SQL analytics endpoint](9.%20Navigate%20SalesLakehouse%20Switch%20to%20the%20SQL%20analytics%20endpoint.png)
+
+2. **Inicio de la creación del modelo semántico**  
+   En la barra de herramientas del endpoint SQL, hice clic en **New semantic model**. Se abrió el panel de configuración donde completé los siguientes campos:
+
+   - **Direct Lake semantic model name**: `SalesData`
+   - **Workspace**: `SalesLifecycle-dev` (mi workspace de desarrollo)
+   - **Storage mode**: `Direct Lake on SQL` (seleccioné esta opción para consultar directamente los datos en el lakehouse)
+   - **Tables**: marqué la opción **Select all** para incluir las tres tablas (`products`, `customers`, `sales`)
+
+   > ![Inicio de la creación del modelo semántico](10.%20start%20creating%20new%20semantic%20model.png)  
+   > ![Configuración del modelo semántico](11.%20create%20configuration%20of%20semantic%20model.png)
+
+3. **Confirmación y espera de la creación**  
+   Hice clic en **Confirm** y esperé unos minutos hasta que el modelo semántico se creara por completo. Una vez finalizado, el modelo `SalesData` apareció en la lista de elementos del workspace, confirmando que estaba disponible para su uso.
+
+   > ![Validación de la creación del modelo semántico](12.%20Semantic%20model%20creation%20validation.png)
+
+---
+
+**Nota final:** Con este paso, ya tengo un modelo semántico basado en el lakehouse, que podré gestionar y validar utilizando SemPy desde el notebook en los siguientes pasos del laboratorio.
+
