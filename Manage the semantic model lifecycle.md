@@ -45,12 +45,12 @@ Después de ejecutar el código, en el explorador del lakehouse, hice clic derec
 
 ## Crear el módelo semantico
 
-1. **Navegación al lakehouse y cambio al endpoint SQL**  
+### 1. **Navegación al lakehouse y cambio al endpoint SQL**  
    Desde el workspace `SalesLifecycle-dev`, seleccioné el lakehouse **SalesLakehouse**. En la esquina superior derecha, cambié la vista de **Lakehouse** a **SQL analytics endpoint** para poder crear el modelo semántico basado en las tablas.
 
    > ![Cambio al SQL analytics endpoint](lifecycle_lab_img/9.%20Navigate%20SalesLakehouse%20Switch%20to%20the%20SQL%20analytics%20endpoint.png)
 
-2. **Inicio de la creación del modelo semántico**  
+### 2. **Inicio de la creación del modelo semántico**  
    En la barra de herramientas del endpoint SQL, hice clic en **New semantic model**. Se abrió el panel de configuración donde completé los siguientes campos:
 
    - **Direct Lake semantic model name**: `SalesData`
@@ -61,7 +61,7 @@ Después de ejecutar el código, en el explorador del lakehouse, hice clic derec
    > ![Inicio de la creación del modelo semántico](lifecycle_lab_img/10.%20start%20creating%20new%20semantic%20model.png)  
    > ![Configuración del modelo semántico](lifecycle_lab_img/11.%20create%20configuration%20of%20semantic%20model.png)
 
-3. **Confirmación y espera de la creación**  
+### 3. **Confirmación y espera de la creación**  
    Hice clic en **Confirm** y esperé unos minutos hasta que el modelo semántico se creara por completo. Una vez finalizado, el modelo `SalesData` apareció en la lista de elementos del workspace, confirmando que estaba disponible para su uso.
 
    > ![Validación de la creación del modelo semántico](lifecycle_lab_img/12.%20Semantic%20model%20creation%20validation.png)
@@ -69,4 +69,64 @@ Después de ejecutar el código, en el explorador del lakehouse, hice clic derec
 ---
 
 **Nota: ** Con este paso, ya tengo un modelo semántico basado en el lakehouse, que podré gestionar y validar utilizando SemPy desde el notebook en los siguientes pasos del laboratorio.
+
+## Validación y corrección de un modelo semántico con SemPy
+
+### 1. Regreso al notebook
+Una vez creado el modelo semántico `SalesData`, navegué de vuelta al workspace `SalesLifecycle-dev` y abrí el notebook `21b-manage-semantic-model-lifecycle` que había importado anteriormente. El notebook ya contenía las celdas de código para la validación y corrección del modelo.
+
+> ![Lista de elementos en el workspace, incluyendo el notebook y el modelo semántico](1)
+
+### 2. Validación del modelo con SemPy
+Dentro del notebook, localicé la sección **Validate the semantic model with SemPy** y ejecuté cada celda en orden, revisando los resultados:
+
+- **Listar tablas del modelo:**  
+  Utilicé `fabric.list_tables("SalesData")` para confirmar que el modelo era accesible. El resultado mostró las tres tablas esperadas: `customers`, `sales` y `products`.
+
+  > ![Código de importación y listado de tablas](2.%20begin%20the%20process%20of%20validation%20of%20semantic%20model%20with%20Sempy.png)  
+  > ![Salida con las tres tablas](3.%20three%20tables%20output%20(first%20code%20chunck).png)
+
+- **Listar columnas de todas las tablas:**  
+  Ejecuté la celda que muestra el nombre, tipo de datos y tabla padre de cada columna. El resultado fue un DataFrame con 21 columnas y 15 filas (aunque el número exacto de columnas puede variar), lo que me permitió inspeccionar la estructura del modelo sin necesidad de abrir Power BI Desktop.
+
+  > ![Análisis de columnas con estadísticas básicas](4.%2021%20columns%20and%20their%20EDA%20automatic%20analysis.png)  
+  > ![Más estadísticas de columnas](5.%20More%20statstics.png)
+
+- **Verificar valores nulos y duplicados:**  
+  Ejecuté la celda que cuenta nulos en todas las columnas y duplicados en la clave primaria de ventas. Los resultados mostraron que la columna `CustomerKey` en la tabla `sales` tenía 3 valores nulos, y que no había duplicados en `SalesKey`. Esto indicaba que algunas filas de ventas no podrían vincularse con la tabla de clientes, causando posibles espacios en blanco en los informes.
+
+  > ![Resultado de nulos y duplicados](6.%20null%20values%20in%20customerkey%20.png)
+
+- **Descubrir relaciones potenciales:**  
+  Utilicé la función `find_relationships` de SemPy para detectar posibles relaciones entre las tablas. El análisis encontró una relación de muchos a uno (m:1) entre la tabla `sales` (columna `ProductKey`) y la tabla `products` (columna `ProductKey`), con una cobertura completa (1.0 en ambas direcciones). Esto sugería que esa relación debería existir en el modelo.
+
+  > ![Relación descubierta entre sales y products](7.%20one%20many-to-one%20relationship%20on%20ProductKey%20between%20the%20sales%20and%20products%20tables..png)
+
+- **Evaluar una consulta DAX para verificar cálculos:**  
+  Ejecuté una consulta DAX que agrupaba las ventas por categoría de producto. El resultado mostró el mismo total para las tres categorías (`Bikes`, `Clothing`, `Accessories`), lo cual era incorrecto. Esto confirmaba que el modelo no tenía relaciones definidas, por lo que el motor DAX no podía filtrar las ventas por categoría.
+
+  > ![Resultado de la consulta DAX mostrando totales idénticos](8.%20The%20identical%20values%20the%20semantic%20model%20has%20no%20relationships%20DAX%20engine%20can’t%20filter%20sales%20by%20category.png)
+
+### 3. Corrección del modelo con SemPy
+Con la validación completada y el problema identificado, pasé a la sección **Fix the semantic model with SemPy** para agregar las relaciones faltantes de forma programática.
+
+- **Agregar relaciones mediante TOM:**  
+  Ejecuté la celda que abre una conexión de lectura/escritura al modelo mediante la API de Tabular Object Model (TOM). El código creó dos relaciones de muchos a uno:
+
+  - `sales[ProductKey]` → `products[ProductKey]`
+  - `sales[CustomerKey]` → `customers[CustomerKey]`
+
+  Los cambios se guardaron automáticamente al cerrar el contexto, y luego se refrescó el modelo para activar las nuevas relaciones.
+
+  > ![Código para fijar el modelo con TOM](9.%20now%20we%20atar%20fixing%20the%20model.png)  
+  > ![Confirmación de relaciones agregadas y modelo refrescado](10.%20creates%20two%20many-to-one%20relationships%20using%20the%20TOM%20API.png)
+
+- **Re-ejecutar la consulta DAX:**  
+  Una vez aplicadas las relaciones, volví a ejecutar la misma consulta DAX que antes daba resultados idénticos. Esta vez, los totales fueron diferentes para cada categoría, confirmando que las relaciones funcionaban correctamente y que el modelo ahora podía filtrar ventas por producto.
+
+  > ![Resultados correctos de la consulta DAX con relaciones activas](11.%20rerun%20the%20DAX%20query%20resukts%20are%20diferent.png)
+
+---
+
+**Nota final:** Con estos pasos completé la validación y corrección del modelo semántico utilizando SemPy. El modelo ahora tiene las relaciones necesarias y devuelve resultados correctos en las consultas DAX. El notebook puede cerrarse junto con los demás elementos abiertos, dando por finalizada esta parte del laboratorio.
 
