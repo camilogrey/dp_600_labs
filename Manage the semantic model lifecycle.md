@@ -135,34 +135,34 @@ Con la validación completada y el problema identificado, pasé a la sección **
 ### 1. Creación del pipeline de despliegue
 Desde el workspace `SalesLifecycle-dev`, en la barra de herramientas, seleccioné **Create deployment pipeline**. En el cuadro de diálogo **Add a new deployment pipeline**, asigné el nombre **`SalesData Deployment Pipeline`** y agregué una breve descripción opcional. Hice clic en **Next** para continuar.
 
-> ![Navegación al workspace dev para crear el pipeline](12.%20go%20to%20the%20dev%20and%20create%20a%20deployment%20pipeline.png)  
-> ![Asignación de nombre al pipeline](13.%20name%20of%20the%20deplyment%20pipeline.png)
+> ![Navegación al workspace dev para crear el pipeline](lifecycle_lab_2_img/12.%20go%20to%20the%20dev%20and%20create%20a%20deployment%20pipeline.png)  
+> ![Asignación de nombre al pipeline](lifecycle_lab_2_img/13.%20name%20of%20the%20deplyment%20pipeline.png)
 
 ### 2. Configuración de las etapas (stages)
 En la estructura del pipeline, se mostraban tres etapas por defecto: **Development**, **Test** y **Production**. Eliminé la etapa **Test** haciendo clic en su icono de eliminar, dejando únicamente **Development** y **Production**. Luego seleccioné **Create and continue** para guardar la configuración.
 
-> ![Eliminación de la etapa Test](14.%20delete%20test%20stage.png)
+> ![Eliminación de la etapa Test](lifecycle_lab_2_img/14.%20delete%20test%20stage.png)
 
 ### 3. Asignación de workspaces a cada etapa
 En la etapa **Development**, asigné el workspace `SalesLifecycle-dev` y guardé el cambio. En la etapa **Production**, asigné el workspace `SalesLifecycle-prod` y guardé también. El pipeline ahora mostraba ambos stages con sus respectivos workspaces.
 
-> ![Asignación de workspaces a cada stage](15.%20seleccionamos%20el%20workspace%20de%20cada%20stage%20.png)  
-> ![Workspaces asignados correctamente](16.%20assigned%20workspaces%20&%20stages.png)
+> ![Asignación de workspaces a cada stage](lifecycle_lab_2_img/15.%20seleccionamos%20el%20workspace%20de%20cada%20stage%20.png)  
+> ![Workspaces asignados correctamente](lifecycle_lab_2_img/16.%20assigned%20workspaces%20&%20stages.png)
 
 ### 4. Despliegue del contenido desde Development a Production
 En la vista del pipeline, revisé la comparación entre etapas. Los elementos en **Development** (el lakehouse, el notebook y el modelo semántico) aparecían como "Only in source". Seleccioné la tarjeta de **Production** para marcar todos los elementos para su despliegue.
 
-> ![Selección de todos los elementos para staging](17.%20select%20all%20item%20for%20staging%20.png)
+> ![Selección de todos los elementos para staging](lifecycle_lab_2_img/17.%20select%20all%20item%20for%20staging%20.png)
 
 Luego hice clic en **Deploy** y en el cuadro de diálogo agregué una nota: *"Initial deployment - validated with SemPy"*. Confirmé el despliegue.
 
-> ![Agregar nota para el despliegue](18.%20add%20a%20note%20for%20the%20deployment.png)  
-> ![Proceso de despliegue en curso](19.%20deployment%20process.png)
+> ![Agregar nota para el despliegue](lifecycle_lab_2_img/18.%20add%20a%20note%20for%20the%20deployment.png)  
+> ![Proceso de despliegue en curso](lifecycle_lab_2_img/19.%20deployment%20process.png)
 
 ### 5. Verificación del despliegue exitoso
 Esperé a que el proceso finalizara. El pipeline confirmó que la etapa **Production** se había desplegado correctamente, mostrando la fecha y hora del despliegue exitoso. Luego navegué al workspace `SalesLifecycle-prod` y verifiqué que los elementos (lakehouse, modelo semántico y notebook) habían sido copiados correctamente.
 
-> ![Confirmación de despliegue exitoso](20.%20sucessful%20deployment.png)
+> ![Confirmación de despliegue exitoso](lifecycle_lab_2_img/20.%20sucessful%20deployment.png)
 
 ---
 
